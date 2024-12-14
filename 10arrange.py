@@ -259,8 +259,6 @@ class App:
         for enemy in enemies:
             enemy.draw()
 
-import time  # 必要に応じて追加
-
 
 def game_over():
     global scroll_x, enemies, player
@@ -271,7 +269,11 @@ def game_over():
     # カメラをリセット
     pyxel.camera()
 
-    while True:
+    # ゲームオーバーフラグを立てる
+    global is_game_over
+    is_game_over = True
+
+    def draw_game_over_screen():
         pyxel.cls(0)  # 画面をクリア
 
         # 中央に配置するための座標を計算
@@ -289,13 +291,27 @@ def game_over():
         pyxel.text(text2_x, text_y, text2, 7)          # スコア表示
         pyxel.text(text3_x, text_y + 20, text3, 7)     # リスタート指示
 
-        pyxel.flip()  # 描画内容を更新
-
-        # スペースキーまたはAボタンが押されたらリセット
+    def update_game_over():
+        global is_game_over
+        # RキーまたはBボタンが押されたらリセット
         if pyxel.btnp(pyxel.KEY_R) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
             reset_game()
             pyxel.play(3, 9)  # ゲームオーバー時の効果音を再生
-            return  # リセット後にゲームループに戻る
+            is_game_over = False  # ゲームオーバーフラグを解除
+
+    def update():
+        if is_game_over:
+            update_game_over()
+        else:
+            update_game_logic()  # 通常のゲーム更新関数
+
+    def draw():
+        if is_game_over:
+            draw_game_over_screen()
+        else:
+            draw_game_screen()  # 通常のゲーム描画関数
+
+    pyxel.run(update, draw)
 
 def reset_game():
     """ゲームのリセット処理を分離"""
@@ -310,5 +326,6 @@ def reset_game():
 
     # 敵を再生成
     spawn_enemy(0, 127)
+
 
 App()
